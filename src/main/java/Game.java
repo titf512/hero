@@ -20,60 +20,39 @@ public class Game {
 
 
     public Game() throws IOException {
-        screen.setCursorPosition(null); // we don't need a cursor
-        screen.startScreen(); // screens must be started
-        screen.doResizeIfNecessary(); // resize screen if necessary
-
+        screen.setCursorPosition(null);
+        screen.startScreen();
+        screen.doResizeIfNecessary();
     }
     TextGraphics graphics = screen.newTextGraphics();
 
-    private void draw() throws IOException {
-
-        graphics.setBackgroundColor(TextColor.Factory.fromString("#336699"));
-        graphics.fillRectangle(new TerminalPosition(0, 0), new TerminalSize(arena.getWidth(), arena.getHeight()), ' ');
+    private void draw() throws IOException{
+        screen.clear();
         arena.draw(screen.newTextGraphics());
-
         screen.refresh();
-
     }
+
 
 
 
     public void run() throws IOException {
-
-            while(true) {
-                draw();
-                com.googlecode.lanterna.input.KeyStroke key = screen.readInput();
-                processKey(key);
-                if(arena.verifyMonsterCollisions()){
-                    screen.close();
-                    break;
-                }
-
-                if (key.getKeyType() == KeyType.Character && key.getCharacter() == ('q'))
-                    screen.close();
-                if (key.getKeyType() == KeyType.EOF)
-                    break;
-
-                arena.moveMonsters();
-                if(arena.verifyMonsterCollisions()){
-                    screen.close();
-                    break;
-                }
-            }
-
-
-    }
-
-    public KeyStroke readInput() throws IOException {
-        KeyStroke key = screen.readInput();
-        return key;
+        while (true) {
+            draw();
+            KeyStroke key = screen.readInput();
+            if (key.getKeyType() == KeyType.Character && key.getCharacter() == 'q')
+                screen.close();
+            if (key.getKeyType() == KeyType.EOF)
+                break;
+            processKey(key);
+        }
     }
 
 
-    private void processKey(KeyStroke key) throws IOException {
+
+
+
+    public void processKey(KeyStroke key) {
         arena.processKey(key);
     }
-
 
 }

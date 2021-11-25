@@ -3,15 +3,16 @@ import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 
-public class Coin extends Element
-{
-    public Coin(int x, int y) {super(x,y);}
+public class Coin extends Element {
+    public Coin(int x, int y) {
+        super(x, y);
+    }
 
     @Override
-    public void draw(TextGraphics screen) {
-        screen.setForegroundColor(TextColor.Factory.fromString("#999933"));
-        screen.enableModifiers(SGR.BOLD);
-        screen.putString(new TerminalPosition(getPosition().getX(), getPosition().getY()), "$");
+    public void draw(TextGraphics graphics) {
+        graphics.setBackgroundColor(TextColor.Factory.fromString("#01579B"));
+        graphics.setForegroundColor(TextColor.Factory.fromString("#FFFF33"));
+        graphics.putString(new TerminalPosition(position.getX(), position.getY()), "$");
     }
 
     @Override

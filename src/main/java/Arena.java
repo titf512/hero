@@ -1,3 +1,7 @@
+import com.googlecode.lanterna.SGR;
+import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
@@ -10,7 +14,7 @@ import java.util.Random;
 
 public class Arena {
     int width, height;
-    private Hero hero = new Hero(10, 10);
+    Hero hero = new Hero(10, 10);
     private List<Wall> walls;
     private List<Coin> coins;
     private List<Monster> monsters;
@@ -18,40 +22,46 @@ public class Arena {
     Arena(int width, int height){
         this.width=width;
         this.height=height;
+        this.hero = new Hero(10, 10);
         this.walls=createWalls();
         this.coins=createCoins();
-        monsters = createMonsters();
+        this.monsters = createMonsters();
     }
 
 
-
-    private List<Wall> createWalls() {
+    private List<Wall> createWalls(){
         List<Wall> walls = new ArrayList<>();
-        for (int c = 0; c < width; c++) {
+
+        for(int c=0; c < width; c++){
             walls.add(new Wall(c, 0));
-            walls.add(new Wall(c, height - 1));
+            walls.add(new Wall(c, height-1));
         }
-        for (int r = 1; r < height - 1; r++) {
+
+        for(int r=0; r < height; r++){
             walls.add(new Wall(0, r));
-            walls.add(new Wall(width - 1, r));
+            walls.add(new Wall(width-1, r));
         }
-        for (int c = 0; c < width; c++) {
-            System.out.println(walls.get(c));
-        }
+
         return walls;
     }
+
 
     private List<Coin> createCoins() {
         Random random = new Random();
         ArrayList<Coin> coins = new ArrayList<>();
-        for(int i=0; i<5; i++){
-            Coin newcoin = new Coin(random.nextInt(width-2) + 1,
-                    random.nextInt(height-2)+1);
-            if(!coins.contains(newcoin) && !newcoin.getPosition().equals(hero.getPosition()))
-                coins.add(newcoin);
-        }
+        for (int i = 0; i < 5; i++)
+            coins.add(new Coin(random.nextInt(width - 2) + 1, random.nextInt(height - 2) + 1));
         return coins;
     }
+
+    private List<Monster> createMonsters() {
+        Random random = new Random();
+        ArrayList<Monster> monsters = new ArrayList<>();
+        for (int i = 0; i < 5; i++)
+            monsters.add(new Monster(random.nextInt(width - 2) + 1, random.nextInt(height - 2) + 1));
+        return monsters;
+    }
+
 
     public int getHeight() {
         return height;
@@ -62,8 +72,11 @@ public class Arena {
     }
 
     void draw(TextGraphics graphics){
+        graphics.setBackgroundColor(TextColor.Factory.fromString("#336699"));
+        graphics.fillRectangle(new TerminalPosition(0,0), new TerminalSize(width, height), ' ');
 
         hero.draw( graphics);
+
         for (Wall wall : walls)
             wall.draw(graphics);
 
@@ -77,13 +90,32 @@ public class Arena {
     }
 
 
-    private boolean canHeroMove(Position position) {
-        boolean value=false;
-        for (Wall wall : walls){
-            if (wall.getPosition().equals(position)) return false;
-            else if (position.getX()< width && position.getY()< height) value=true;
+    public Position moveUp() {
+        return new Position(hero.getPosition().getX(), hero.getPosition().getY() - 1);
+    }
+
+    public Position moveDown() {
+        return new Position(hero.getPosition().getX(), hero.getPosition().getY() + 1);
+    }
+
+    public Position moveLeft() {
+        return new Position(hero.getPosition().getX()-1, hero.getPosition().getY());
+    }
+
+    public Position moveRight() {
+        return new Position(hero.getPosition().getX()+1, hero.getPosition().getY());
+    }
+
+    public void moveHero(Position position) {
+        if (canHeroMove(position)) {
+            hero.setPosition(position);
         }
-        return value;
+    }
+
+    private boolean canHeroMove(Position pos){
+        return (pos.getX() > 0 && pos.getX() < width-1) &&
+                (pos.getY() > 0 && pos.getY() < height-1) &&
+                !walls.contains(new Wall(pos.getX(), pos.getY()));
     }
 
 
@@ -96,56 +128,67 @@ public class Arena {
         }
     }
 
-    public void moveHero(Position position) {
-        if (canHeroMove(position))
-            hero.setPosition(position);
-        retrieveCoins();
-    }
 
-    private List<Monster> createMonsters() {
-        Random random = new Random();
-        ArrayList<Monster> monsters = new ArrayList<>();
-        for(int i=0; i<5; i++){
-            Monster newmonster = new Monster(random.nextInt(width-2) + 1,
-                    random.nextInt(height-2)+1);
-            if(!monsters.contains(newmonster) && !newmonster.getPosition().equals(hero.getPosition()))
-                monsters.add(newmonster);
-        }
-        return monsters;
-    }
 
-    public void moveMonsters(){
-        for(Monster monster : monsters){
-            monster.setPosition(monster.move(this));
+
+
+    private void moveMonsters() {
+        for (Monster monster : monsters) {
+            Position monsterPosition = monster.move();
+            if (canHeroMove(monsterPosition))
+                monster.setPosition(monsterPosition);
         }
     }
 
-    public boolean verifyMonsterCollisions(){
-        for(Monster monster : monsters){
-            if(monster.getPosition().equals(hero.getPosition())){
-                System.out.println("Death.");
-                return true;
+    private void verifyMonsterCollisions() {
+        for (Monster monster : monsters)
+            if (hero.getPosition().equals(monster.getPosition())) {
+                System.out.println("Sorry, You died!");
+                System.exit(0);
             }
+    }
+
+
+
+    public void processKey(KeyStroke key) {
+        if (key.getKeyType() == KeyType.ArrowUp) moveHero(hero.moveUp());
+        if (key.getKeyType() == KeyType.ArrowRight) moveHero(hero.moveRight());
+        if (key.getKeyType() == KeyType.ArrowDown) moveHero(hero.moveDown());
+        if (key.getKeyType() == KeyType.ArrowLeft) moveHero(hero.moveLeft());
+
+        retrieveCoins();
+
+        verifyMonsterCollisions();
+        moveMonsters();
+        verifyMonsterCollisions();
+    }
+
+    private class Hero extends Element{
+        private Hero(int x, int y) {
+            super(x,y);
         }
-        return false;
+
+        public void draw(TextGraphics graphics){
+            graphics.setBackgroundColor(TextColor.Factory.fromString("#01579B"));
+            graphics.setForegroundColor(TextColor.Factory.fromString("#FFFF33"));
+            graphics.putString(new TerminalPosition(getPosition().getX(), getPosition().getY()), "X");
+        }
+        public Position moveUp() {
+            return new Position(position.getX(), position.getY() - 1);
+        }
+
+        public Position moveRight() {
+            return new Position(position.getX() + 1, position.getY());
+        }
+
+        public Position moveDown() {
+            return new Position(position.getX(), position.getY() + 1);
+        }
+
+        public Position moveLeft() {
+            return new Position(position.getX() - 1, position.getY());
+        }
     }
-
-
-    public void processKey(KeyStroke key) throws IOException {
-        /*switch (key.getKeyType()) {
-            case (KeyType.ArrowUp): hero.getY()-=1;
-            case (KeyType.ArrowDown): y+=1;
-            case (KeyType.ArrowLeft): x-=1;
-            case (KeyType.ArrowRight): x+=1;
-        }*/
-        if (key.getKeyType()==KeyType.ArrowUp) moveHero(hero.moveUp());
-        else if (key.getKeyType()==KeyType.ArrowDown)  moveHero(hero.moveDown());
-        else if (key.getKeyType()==KeyType.ArrowLeft) moveHero(hero.moveLeft());
-        else if (key.getKeyType()==KeyType.ArrowRight) moveHero(hero.moveRight());
-
-    }
-
-
 
 
 

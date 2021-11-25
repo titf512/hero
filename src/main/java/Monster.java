@@ -19,14 +19,17 @@ public class Monster extends Element{
         screen.putString(new TerminalPosition(getPosition().getX(), getPosition().getY()), "m");
     }
 
-    public Position move(Arena arena){
-        Random random = new Random();
-        while(true) {
-            Position ret = new Position(this.getPosition().getX() + random.nextInt(3) - 1,
-                    this.getPosition().getY() + random.nextInt(3) - 1);
-            if(ret.getX() > 0 && ret.getX() < arena.getWidth()-1 &&
-                    ret.getY() > 0 && ret.getY() < arena.getHeight()-1)
-                return ret;
+    public Position move() {
+        switch (new Random().nextInt(4)) {
+            case 0:
+                return new Position(position.getX(), position.getY() - 1);
+            case 1:
+                return new Position(position.getX() + 1, position.getY());
+            case 2:
+                return new Position(position.getX(), position.getY() + 1);
+            case 3:
+                return new Position(position.getX() - 1, position.getY());
         }
+        return new Position(position.getX(), position.getY());
     }
 }
