@@ -4,7 +4,13 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 
 public abstract class Element {
-    public Position position = new Position();
+    public Position position;
+
+
+    public Element(int x, int y) {
+        position = new Position();
+    }
+
     public void draw(TextGraphics graphics){
         graphics.setBackgroundColor(TextColor.Factory.fromString("#336699"));
         graphics.setForegroundColor(TextColor.Factory.fromString("#FFFF33"));
@@ -13,5 +19,8 @@ public abstract class Element {
     }
     public Position getPosition(){
        return new Position(position.getX(),position.getY());
+    }
+    public void setPosition(Position position) {
+        this.position = position;
     }
 }

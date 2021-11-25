@@ -6,19 +6,24 @@ import com.googlecode.lanterna.screen.Screen;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Arena {
     int width, height;
     private Hero hero = new Hero(10, 10);
     private List<Wall> walls;
-
-
+    private List<Coin> coins;
+    private List<Monster> monsters;
 
     Arena(int width, int height){
         this.width=width;
         this.height=height;
-        this.walls = createWalls();
+        this.walls=createWalls();
+        this.coins=createCoins();
+        monsters = createMonsters();
     }
+
+
 
     private List<Wall> createWalls() {
         List<Wall> walls = new ArrayList<>();
@@ -36,6 +41,18 @@ public class Arena {
         return walls;
     }
 
+    private List<Coin> createCoins() {
+        Random random = new Random();
+        ArrayList<Coin> coins = new ArrayList<>();
+        for(int i=0; i<5; i++){
+            Coin newcoin = new Coin(random.nextInt(width-2) + 1,
+                    random.nextInt(height-2)+1);
+            if(!coins.contains(newcoin) && !newcoin.getPosition().equals(hero.getPosition()))
+                coins.add(newcoin);
+        }
+        return coins;
+    }
+
     public int getHeight() {
         return height;
     }
@@ -45,9 +62,16 @@ public class Arena {
     }
 
     void draw(TextGraphics graphics){
+
         hero.draw( graphics);
         for (Wall wall : walls)
             wall.draw(graphics);
+
+        for(Coin coin : coins)
+            coin.draw(graphics);
+
+        for(Monster monster : monsters)
+            monster.draw(graphics);
 
 
     }
@@ -63,10 +87,47 @@ public class Arena {
     }
 
 
+    private void retrieveCoins(){
+        for(Coin coin : coins){
+            if(hero.getPosition().equals(coin.getPosition())) {
+                coins.remove(coin);
+                break;
+            }
+        }
+    }
 
     public void moveHero(Position position) {
         if (canHeroMove(position))
             hero.setPosition(position);
+        retrieveCoins();
+    }
+
+    private List<Monster> createMonsters() {
+        Random random = new Random();
+        ArrayList<Monster> monsters = new ArrayList<>();
+        for(int i=0; i<5; i++){
+            Monster newmonster = new Monster(random.nextInt(width-2) + 1,
+                    random.nextInt(height-2)+1);
+            if(!monsters.contains(newmonster) && !newmonster.getPosition().equals(hero.getPosition()))
+                monsters.add(newmonster);
+        }
+        return monsters;
+    }
+
+    public void moveMonsters(){
+        for(Monster monster : monsters){
+            monster.setPosition(monster.move(this));
+        }
+    }
+
+    public boolean verifyMonsterCollisions(){
+        for(Monster monster : monsters){
+            if(monster.getPosition().equals(hero.getPosition())){
+                System.out.println("Death.");
+                return true;
+            }
+        }
+        return false;
     }
 
 

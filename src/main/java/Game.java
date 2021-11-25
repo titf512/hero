@@ -41,14 +41,27 @@ public class Game {
 
     public void run() throws IOException {
 
-        while (true) {
-            draw();
-            KeyStroke key = readInput();
-            if ((key.getKeyType() == KeyType.Character && key.getCharacter() == 'q')) screen.close();
-            if (key.getKeyType() == KeyType.EOF) break;
-            else processKey(key);
+            while(true) {
+                draw();
+                com.googlecode.lanterna.input.KeyStroke key = screen.readInput();
+                processKey(key);
+                if(arena.verifyMonsterCollisions()){
+                    screen.close();
+                    break;
+                }
 
-        }
+                if (key.getKeyType() == KeyType.Character && key.getCharacter() == ('q'))
+                    screen.close();
+                if (key.getKeyType() == KeyType.EOF)
+                    break;
+
+                arena.moveMonsters();
+                if(arena.verifyMonsterCollisions()){
+                    screen.close();
+                    break;
+                }
+            }
+
 
     }
 

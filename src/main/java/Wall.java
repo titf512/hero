@@ -5,9 +5,9 @@ import com.googlecode.lanterna.graphics.TextGraphics;
 
 class Wall extends Element {
 
-    public Wall(int c, int i) {
-        position.setX(c);
-        position.setY(i);
+
+    public Wall(int x, int y){
+        super(x,y);
     }
 
     public Position getPosition(){
